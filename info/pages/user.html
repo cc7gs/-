@@ -1,0 +1,256 @@
+<div id="user">
+	<i class="iconfont icon-tianjia addUser" title="添加用户"></i>
+	<i class="iconfont icon-shanchu batchDel" title="批量删除"></i>
+	<table class="table table-bordered table-striped table-hover text-center">
+			<tr>
+				<td></td>
+				<td>用户名</td>
+				<td>用户类型</td>
+				<td>姓名</td>
+				<td>注册时间</td>
+				<td>邮箱</td>
+				<td>是否有效</td>
+				<td>操作</td>
+			</tr>
+	</table>
+</div>
+<div class="modal " id="addUserModal" data-backdrop="static">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="close text-left" data-dismiss="modal" style="float:left;line-height:30px;"><返回</span>
+				<h4 class="modal-title text-center" >添加用户</h4>
+			</div>
+			<!-- 模态框头部结束 -->
+			<div class="modal-body">
+				<form class="form">
+					<div class="form-group">
+						<label for="username">用户名</label>
+						<input type="text" name="username" id="username" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="password">密码</label>
+						<input type="password" name="password" id="password" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="confirmpwd">重复密码</label>
+						<input type="password" name="confirmpwd" id="confirmpwd" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="nickname">真实姓名</label>
+						<input type="text" name="nickname" id="nickname" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="email">邮箱</label>
+						<input type="text" name="email" id="email" class="form-control">
+					</div>
+					<div class="form-group hide">
+						<label for="regTime">注册时间</label>
+						<input type="text" value='123' name="regTime" disabled id="regTime" class="form-control">
+					</div>
+					<div class="form-group hide">
+						<button type="reset" class="btn">重置</button> 
+					</div>
+				</form>
+			</div>
+			<!-- 模态框体部结束 -->
+			<div class="modal-footer">
+				<span class="messageSpan"></span>
+				<button class="btn btn-success modifyInfo">确认</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	//用来记录用户是添加还是修改用户信息
+ 	var option="添加"; 
+ 	var uId;
+ 	//检测用户是否点击开关按钮
+	$('#user').on({
+		'switchChange.bootstrapSwitch':function(event,status){
+			var id=$(this).closest('.switch').prev('input').val();
+			var obj={
+				id:id,
+				status:status
+			}
+			$.post(baseURL+'/manager/user/changeStatus',obj,function(res){
+				if(res.status==500){
+					$('.alertDiv .alert').addClass('alert-danger');
+					$('.alertDiv strong').text('修改失败');0
+					$('.alertDiv').show().fadeOut(3000);
+
+				}
+			});
+		}
+	},'.switch input[type=checkbox]');
+	loadData();
+	//加载用户数据
+	function loadData(){
+		$.get(baseURL+'/manager/user/findAllUser',function(res){
+			$('#user .table tr:not(:first)').remove();
+			res.data.forEach( function(item, index) {
+				//遍历用户信息加入到表格中
+				var $tr=$(`<tr>
+							<td><input type="checkbox" value="`+item.id+`" /> </td>
+							<td >`+(item.username?item.username:'-')+`</td>
+							<td> `+(item.roles?item.roles:'普通用户')+`</td>
+							<td>`+(item.nickname?item.nickname:'-')+`</td>
+							<td>`+(item.regTime?item.regTime:'2018-9-6')+`</td>
+							<td>`+(item.email?item.email:'-')+`</td>
+							<td><input type="hidden" value="` + item.id + `"><div class="switch text-center"><input type="checkbox"/></div></td>
+							<td><i class="iconfont icon-editor" title="修改"></i> <i class="iconfont icon-empty" title="删除"></i></td>
+						</tr>`);
+					
+					$('#user .table').append($tr);
+					//开关初始化
+				$('#user .switch input[type=checkbox]:last').bootstrapSwitch('state',item.enabled);
+			});	
+		});			
+	}
+	//单个删除数据
+	$('#user .table').on({
+		click:function(){
+			var uId=$(this).closest('tr').find('input[type="checkbox"]').val();
+			$.get(baseURL+'/manager/user/deleteUserById',{id:uId},function(res){
+					alertMessage(res.status,'删除');
+					loadData();
+					$('.alertDiv').show().fadeOut(3000);
+			});
+		}
+	},'.icon-empty');
+	//批量删除数据
+	$('.batchDel').click(function(){
+		//记录下所有选择的用户id
+		var uid=$('td>input[type=checkbox]:checked');
+		uid.each(function(index,item){
+
+			$.get(baseURL+'/manager/user/deleteUserById',{id:item.value},function(res){
+				alertMessage(res.status,'删除');
+				loadData();
+				$('.alertDiv').show().fadeOut(3000);
+			});
+		});
+	});
+	//修改数据
+	$('#user .table').on({
+		click:function(){
+			option="修改";
+			var $parent=$(this).closest('tr').children();
+			 uId=$parent.find('input[type=checkbox]').val();
+			$('#addUserModal #username').val($parent.eq(1).text());
+			$('#addUserModal #nickname').val($parent.eq(3).text());	
+			$('#addUserModal #email').val($parent.eq(5).text());
+			$('#addUserModal .modal-title').text('修改用户信息');
+			$('#addUserModal').modal('show');
+			
+		}
+	},'.icon-editor');
+	//点击添加按钮
+	$('.addUser').click(function(){
+		option="添加";
+		//重置表单
+		$('button[type=reset]').trigger('click');
+		//清空提示信息
+		$('.form span').text('');
+		//显示模态框
+		$('#regTime').val(getDate());
+		$('#addUserModal').modal('show');
+		
+	});
+	var pwd='-'; //存储合法的密码
+	//表单验证
+	$('.form :input').blur(function(){
+		var $parent=$(this).parent();
+		var msg=""; //存放验证信息
+		
+		var addClass="";
+		$parent.find('span').remove();
+		//效验用户名
+		if($(this).is('#username')){
+			if(this.value=="" ||this.value.length<3){
+				msg='请输入至少3位的用户名.';
+				addClass="onError";
+			}else{
+				msg="输入正确.";
+				addClass="onSuccess";
+			}
+		}
+		//验证密码
+		if($(this).is('#password')){
+			if(this.value=="" ||this.value.length<6){
+				msg='请输入至少6位的密码.';
+				addClass="onError";
+			}else{
+				msg="输入正确.";
+				pwd=this.value;
+				addClass="onSuccess";
+			}
+		}
+		//验证密码
+		if($(this).is('#confirmpwd')){
+			if(this.value==pwd){
+				msg="输入正确.";
+				addClass="onSuccess";
+				
+			}else{
+				msg='密码输入不一致.';
+				addClass="onError";
+
+			}
+		}
+		//验证邮箱
+		if($(this).is('#email')){
+			if(this.value==""||(this.value!="" && !/.+@.+\.[a-zA-Z]{2,4}$/.test(this.value))){
+				msg="请输入正确的E-Mail地址.";
+				addClass="onError";
+			}else{
+				msg="输入正确.";
+				addClass="onSuccess";
+			}
+		}	
+		$parent.append('<span class='+addClass+'>'+msg+'</span>');	
+	});
+	//提交信息
+	$('.modifyInfo').click(function(){
+		//记录表单中有多少个不合法的数据
+		$('.form :input').blur();
+		var numError=$('.form .onError').length;
+		if(numError){
+			$('.messageSpan').text('有的信息输入不合法');
+		}else{
+				//表单序列化
+				var userInfo="";
+				if(option=="添加"){
+					userInfo=$('.form').serialize();
+				}else{
+					userInfo='id='+uId+'&'+$('.form').serialize();
+				}
+			$.post(baseURL+'/manager/user/saveOrUpdateUser',userInfo,function(res){
+					alertMessage(res.status,'添加');
+					loadData();
+					$('#addUserModal').modal('hide');
+					$('.alertDiv').show().fadeOut(3000);
+			})
+		}
+		
+	});
+	//设置模态框的高度
+	$('.modal-content').height($(window).height());
+
+</script>
+<style>
+	#user{
+		padding: 10px;
+		background-color: white;
+	}
+	/*开关样式*/
+	.bootstrap-switch {
+    	border-radius: 10px;
+	}
+	.bootstrap-switch .bootstrap-switch-handle-off, .bootstrap-switch .bootstrap-switch-handle-on, .bootstrap-switch .bootstrap-switch-label{
+		padding:2px 5px;
+	}
+	#addUserModal{
+		overflow: hidden;
+	}
+</style>

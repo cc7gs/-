@@ -1,0 +1,224 @@
+<div id="category">
+	<i class="iconfont icon-tianjia addCategory" title="添加栏目"></i>
+	<i class="iconfont icon-shanchu batchDelCategory" title="批量删除"></i>
+	<table class="table table-bordered table-striped text-center">
+		<tr>
+			<td>编号</td>
+			<td>栏目名称</td>
+			<td>父栏目</td>
+			<td>描述</td>
+			<td>操作</td>
+		</tr>
+	</table>
+</div>
+<div class="modal" id="mycategoryModal" data-backdrop="static">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="close text-left" data-dismiss="modal" style="float:left;"><返回</span>
+				<h4 class="modal-title text-center">添加栏目</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form">
+					<div class="form-group">
+						<label for="categoryName">栏目名称</label>
+						<input id="categoryName" type="text" class="form-control">
+					</div>
+					<div class="form-group">
+						<label for="categoryParent">父栏目</label>
+						<select name="categoryParent" id="categoryParent" class="form-control">
+							<option value="0">--请选择--</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="categroyComment">描述</label>
+						<textarea class="form-control" name="categoryComment" cols="20" rows="10"></textarea>
+					</div>
+					<div class="form-group hide">
+						<button type="reset">重置</button>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<span class="messageSpan"></span>
+				<button class="btn btn-success confirmCategory" >确认</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	//保存所有栏目
+	var categories=[];
+	//判断用户点击的是添加该是修改 默认是添加
+	var option="添加";
+	var curId="";
+	//加载；所有栏目
+	loadData();
+	function loadData(){
+		$.get(baseURL+'/manager/category/findAllCategory',function(res){
+			categories=res.data;
+			//清空数据(当单个删除时会重新加载,把原来显示的数据清空再显示)
+			$('#category .table tr:not(:first)').remove();
+			res.data.forEach( function(item, index) {
+				// 遍历所有栏目
+				var $tr=`<tr>
+							<td><input value="`+item.id+`" type="checkbox"></td>
+							<td>`+(item.name?item.name:'-')+`</td>
+							<td>`+(item.parent?item.parent.name:'-')+`</td>
+							<td>`+(item.comment?item.comment:'本栏目还没有描述哦')+`</td>
+							<td><i title="修改" class="iconfont icon-editor"></i> <i title="删除" class="iconfont icon-empty"></i></td></td>
+						</tr>`
+				 $('#category .table').append($tr);
+			});
+		});
+	}
+
+	//单个删除数据
+	$('#category .table').on({
+		click:function(){
+			var id=$(this).closest('tr').find('input[type="checkbox"]').val();
+			$.get(baseURL+'/manager/category/deleteCategoryById',{id:id},function(res){
+					alertMessage(res.status,'删除');
+					loadData();
+				$('.alertDiv').show().fadeOut(3000);
+			})
+		}
+	},'i[title=删除]');
+
+	//点击修改按钮
+	$('#category .table').on({
+		click:function(){
+			option="修改";
+			//重置数据
+			$('button[type=reset]').trigger('click');
+			//清空提示信息
+			$('.form span').text('');
+			curId=$(this).closest('tr').find('input[type=checkbox]').val();
+			var result=categories.filter( function(item, index) {
+				// statements
+					return item.id==curId;
+			})[0];
+			console.log(categories,'----------------',result);
+		$('#mycategoryModal #categoryName').val(result.name);	
+		$('#mycategoryModal textarea').val(result.comment);
+		$('#mycategoryModal .modal-title').text('修改栏目');
+			//加载所有父栏目下来框
+			loadOptionParent(function(){
+				$('#mycategoryModal select').val(result.parent?result.parent.id:'');
+
+			});
+		}
+	},'i[title=修改]');
+
+	//点击添加按钮
+	$('#category .addCategory').click(function(){
+		option="添加";
+		//重置数据
+		$('button[type=reset]').trigger('click');
+		//清空提示信息
+		$('.form span').text('');
+		$('#mycategoryModal .modal-title').text('添加栏目');
+		//加载所有父栏目下来框
+		loadOptionParent();
+	});
+
+	//点击模态框确定按钮
+	$('.confirmCategory').click(function(){
+		//记录有多少条信息不合法
+		var errorNum=$('.form .onError').length;
+		//获取输入框的值
+		var categoryName=$('.form #categoryName').val();
+		var categoryParent=$('.form #categoryParent').val();
+		var categroyComment=$('.form textarea[name=categoryComment]').val();
+		//模拟触发失去焦点事件，验证表单信息
+		$('.form :input').blur();
+		if(errorNum>0){
+			$('.messageSpan').text('输入不合法请重新输入');
+			return ;
+		}
+		var obj={
+			name:categoryName,
+			parentId:(categoryParent==0?'':categoryParent),
+			comment:categroyComment,
+			no:''
+		}
+		if(option=="修改"){
+			obj.id=curId;
+		}
+		$.post(baseURL+'/manager/category/saveOrUpdateCategory',obj,function(res){
+				if (option=="添加") {
+					alertMessage(res.status,'添加');
+				}else{
+					alertMessage(res.status,'修改');
+				}
+					loadData();
+				$('#mycategoryModal').modal('hide');
+				$('.alertDiv').show().fadeOut(3000);
+		});
+	});
+	//批量删除
+	$('.batchDelCategory').click(function(){
+		var $input=$('input[type=checkbox]:checked');
+		var ids=$input.map(function(index,item){
+			return item.value;
+		}).get().toString();
+		$.post(baseURL+'/manager/category/batchDeleteCategory',{ids:ids},function(res){
+				alertMessage(res.status,'删除');
+				loadData();
+				$('.alertDiv').show().fadeOut(3000);
+		});
+	});
+	//加载所有父栏目
+	function loadOptionParent(handle){
+		$('.form #categoryParent option:not(:first)').remove();
+		$.get(baseURL+'/manager/category/findAllCategory',function(res){
+			res.data.forEach( function(item, index) {
+				// statements
+				var $option=$('<option value="'+item.id+'">'+item.name+'</option>');
+				$('.form #categoryParent').append($option);
+			});
+			if(handle){
+				handle();
+				//删除 请选择
+				$('.form #categoryParent option:first').hide();
+			}else{
+				$('.form #categoryParent option:first').show();
+			}
+			//显示模态框
+			$('#mycategoryModal').modal('show');
+		});		
+	}
+
+	//提交信息验证
+	$('.form :input').blur(function(){
+		var $parent=$(this).parent();
+		var msg=""; //存放验证信息
+		var addClass="";
+		$parent.find('span').remove();
+			if($(this).is('#categoryName')){
+				if(this.value==""){
+					msg='请输入栏目名称.';
+					addClass="onError";
+				}else{
+					msg="输入正确.";
+					addClass="onSuccess";
+				}
+			}
+			$parent.append('<span class='+addClass+'>'+msg+'</span>');	
+	});
+
+	//设置模态框的高度
+	$('#mycategoryModal .modal-content').height($(window).height());
+</script>
+<style>
+	#category{
+		padding: 10px;
+		background-color: white;
+	}
+	#mycategoryModal{
+		overflow: hidden;
+	}
+	.form .form-group{
+		padding: 15px 0;
+	}
+</style>

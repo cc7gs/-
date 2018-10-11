@@ -1,0 +1,354 @@
+<div id="home">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="wrapDiv bg-white">
+				<!-- 图标 -->
+				<div class="iconDiv">
+					<i class="iconfont icon-mine"></i>
+				</div>
+				<!-- 文字 -->
+				<div class="numDiv usertotal">
+					<span>用户总数</span>
+					<small>12</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="wrapDiv bg-white">
+				<!-- 图标 -->
+				<div class="iconDiv">
+					<i class="iconfont icon-zixunlanmu"></i>
+				</div>
+				<!-- 文字 -->
+				<div class="numDiv categorytotal">
+					<span>栏目总数</span>
+					<small>12</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="wrapDiv bg-white">
+				<!-- 图标 -->
+				<div class="iconDiv">
+					<i class="iconfont icon-wenjian"></i>
+				</div>
+				<!-- 文字 -->
+				<div class="numDiv articletotal">
+					<span>文章总数</span>
+					<small>12</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="wrapDiv bg-white">
+				<!-- 图标 -->
+				<div class="iconDiv">
+					<i class="iconfont icon-pinglun"></i>
+				</div>
+				<!-- 文字 -->
+				<div class="numDiv liuyantotal">
+					<span>留言总数</span>
+					<small>12</small>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="userDiv">
+				<div id="userContainer"></div>
+				<div class="numDiv">
+					<small>用户</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="newsDiv">
+				<div id="newsContainer"></div>
+				<div class="numDiv">
+					<small>文章</small>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="categoryDiv">
+				<div id="categoryContainer"></div>
+				<div class="numDiv">
+					<small>栏目</small>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="thumbnail">
+				<img  src="./img/userLogo1.png" alt="图片走丢了,重新加载">
+				<div class=" userLogo" >
+                	<img src="img/userLogo.png" alt="图片找不到" class="img-circle">
+				</div>
+                <div class="caption">
+                   <div class="row">
+                   		<div class="col-sm-4 col-sm-offset-1">上次登录时间:</div>
+						<div class="col-sm-7">2018-1-1-1</div>
+                   </div>
+                    <div class="row">
+                   		<div class="col-sm-4 col-sm-offset-1">注册时间:</div>
+						<div class="col-sm-7">2011-1-1</div>
+                   </div>
+                   <div class="row">
+                   		<div class="col-sm-4 col-sm-offset-1">我的权限</div>
+						<div class="col-sm-7"><a href="#">查看</a></div>
+                   </div>
+                </div>
+		     </div>
+		</div>
+	</div>
+</div>
+<script>
+	getCount();
+	drawUser();
+	drawnews();
+	drawCategory();
+
+	 //用户折线图
+    function drawUser() {
+        var chart = Highcharts.chart('userContainer', {
+            chrart: {
+                margin: [0, 0, 0, 0]
+            },
+
+            colors: ['#64b921', '#ccc'],
+            legend: {
+				symbolHeight: 12,
+				symbolWidth: 12,
+				symbolRadius: 0,
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'top'
+            },
+            title:{
+            	text:""
+            },
+            credits: {
+                enabled: false
+            },
+            yAxis: {
+                visible: false,
+            },
+            xAxis: {
+                visible: false
+            },
+            series: [{
+                name: 'Pageviews',
+                data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+            }, {
+                name: 'Visitors',
+                data: [24916, 24064, 29742, 29851, 32490, 30282, 38121, 40434]
+            }],
+        });
+    }
+  	//文章柱状图
+    function drawnews() {
+        Highcharts.chart('newsContainer', {
+        	colors:['#7d30c0'],
+			chart: {
+				type: 'column',
+				margin:[0,0,0,0]
+			},
+			title: {
+				text: ''
+			},
+			xAxis:{
+				visible:false,
+			},
+			yAxis:{
+				visible:false,
+			},
+			legend: {
+				enabled:false
+			},
+			credits:{
+				enabled:false
+			},
+			series: [{
+				name:'1',
+				colorByPoint:true,
+				data: [12,3,1,2,6,3,2,4,5,19,1,2,3,19,12,10,9,8,3,4,5,6,8]
+			}]
+		});
+    }
+     //饼图
+    function drawCategory() {
+    	var chart = Highcharts.chart('categoryContainer', {
+				colors:['#ccc','#90ed7d'],
+				credits:{
+					enabled:false
+				},
+				chart: {
+					margin : [0,0,0,100]
+				},
+				title: {
+					floating:true,
+					text: ''
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: false,
+							format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+							style: {
+								color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+							}
+						},
+					}
+				},
+				series: [{
+					type: 'pie',
+					innerSize: '60%',
+					name: 'sales',
+					data: [
+						['Firefox',45.0],
+						['IE',26.8],
+						['Chrome',12.8],
+						['Safari',8.5],
+						['Opera',6.2],
+						['其他',0.7]
+					]
+				}]
+			});
+    }
+  
+    //获取用户、栏目、文章、统计数据
+    function getCount(){
+    	$.get(baseURL+'/manager/statistics/getCount',function(res){
+    		if(res.status==200){
+    			console.log(res.data);
+    			$('.wrapDiv .usertotal>small').text(res.data.user);
+    			$('.wrapDiv .categorytotal>small').text(res.data.category);
+    			$('.wrapDiv .articletotal>small').text(res.data.article);
+    		}else{
+    			console.log('数据初始化失败');
+    		}
+    	});
+    }
+</script>
+<style>
+	#home{
+		padding:20px;
+		background-color: white;
+	}
+	/*第一行统计样式(用户、栏目、文章、留言)*/
+	#home .wrapDiv{
+		padding:20px 10px;
+		border-radius: 5px;
+	}
+	#home .wrapDiv::after{
+		content: "";
+		display: block;
+		clear: both;
+	}
+	#home .iconDiv{
+		float: left;
+		width: 60px;
+		height: 60px;
+		border-radius:50%; 
+		text-align: center;
+		
+	}
+	#home .iconDiv i{
+		margin:0;
+		font-size: 60px;
+		line-height: 60px;
+		color:#40c9c6;
+	}
+	#home .iconDiv i.icon-zixunlanmu{
+		font-size: 40px;
+		line-height: 60px;
+		color:#36a3f7;
+	}
+	#home .iconDiv:hover i{
+		color:white;
+	}
+	#home .iconDiv:hover {
+		border-radius: 0;
+		background-color: #34bfa3;
+	}
+	#home .wrapDiv .numDiv{
+		float: right;
+		cursor: pointer;
+	}
+	#home .wrapDiv .numDiv span{
+		font-size: 18px;
+		font-weight: bold;
+		line-height: 18px;
+		color:rgba(0, 0, 0, 0.45);
+	}
+	#home .wrapDiv .numDiv small, .numDiv{
+		font-size: 20px;
+		display: block;
+		margin-top: 14px;
+		font-weight: bold;
+		color: #666;
+	}
+	/*用户图表*/
+	.userDiv,.newsDiv,.categoryDiv{
+		position: relative;
+		margin:30px 0;
+	}
+	#userContainer,#newsContainer,#categoryContainer{
+		height: 260px;
+		margin-top: 10px;
+	}
+	.userDiv .numDiv,.newsDiv .numDiv,.categoryDiv .numDiv{
+		position: absolute;
+		top:20px;
+		left: 20px;
+	}
+	/*用户图像样式*/
+	.thumbnail {
+		position: relative;
+		box-shadow: 3px 3px 3px #ccc;
+		border-radius: 5px;
+		font-size: 14px;
+		margin-top: 30px;
+		/*height: 260px;*/
+		overflow: hidden;
+		padding-top: 20px;
+		color:#ccc;
+	}
+	.thumbnail>img{
+		transition: all .5s;
+	}
+	.thumbnail>img:hover{
+		transform: scale(1.05);
+	}
+	.thumbnail .userLogo{
+		
+		position: absolute;
+		left:10%;
+		top: 54%;
+		padding: 10px;
+		border-radius: 50%;
+		background-color: white;
+
+	}
+	.userLogo img{
+
+		width: 50px;
+		height: 50px;
+	}
+	.thumbnail .caption{
+		margin:10px;
+	}
+	.caption .row{
+		margin-top:15px;
+	}
+	.bg-white{
+		background-color: white;
+	}
+</style>
